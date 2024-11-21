@@ -1,5 +1,6 @@
 import pickle
 import dahuffman
+import os
 
 def huffman_compress(data, info, file_path):
     codec = dahuffman.HuffmanCodec.from_data(data)
@@ -11,10 +12,9 @@ def huffman_compress(data, info, file_path):
 def huffman_decompress(file_path):
     with open(file_path, "rb") as file:
         loaded_package = pickle.load(file)
-
     loaded_codec = loaded_package[0]
     loaded_compressed_data = loaded_package[1]
     info = loaded_package[2]
     decompressed_data = loaded_codec.decode(loaded_compressed_data)
     original_array = list(map(int, decompressed_data))
-    return original_array, info
+    return original_array, info, os.path.getsize(file_path)
