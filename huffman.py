@@ -8,6 +8,7 @@ def huffman_compress(data, info, file_path):
     package = [codec, compressed_data, info]
     with open(file_path, "wb") as file:
         pickle.dump(package, file)
+    return file_path
     
 def huffman_decompress(file_path):
     with open(file_path, "rb") as file:

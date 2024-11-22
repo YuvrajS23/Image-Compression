@@ -1,5 +1,6 @@
 from scipy.fftpack import dct, idct
 import numpy as np
+import cv2
 
 # 2D DCT
 def dct2(block):

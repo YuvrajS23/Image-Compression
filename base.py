@@ -1,143 +1,68 @@
 import cv2
-import matplotlib.pyplot as plt
-from utils import *
+from decode import *
 from huffman import huffman_compress, huffman_decompress
 import argparse
 
+# TODO: Implement the subparser
+# Implement for colour images
+# Add Encode and Decode Functions
+# Write plotting code
+# Start the report
+
 # Parsing the args
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Image Compression with a specified quality factor.")
+    parser = argparse.ArgumentParser(description="Encode, decode, or perform both operations on a file.")
+    
+    # Subparsers for 'encode', 'decode', and 'encodeanddecode'
+    subparsers = parser.add_subparsers(dest="mode", required=True, help="Operation mode")
 
-    # Quality factor (integer)
-    parser.add_argument(
-        "quality_factor",
-        type=int,
-        help="An integer to decide the quality factor"
-    )
+    # Encode subparser
+    encode_parser = subparsers.add_parser("encode", help="Encode a file")
+    encode_parser.add_argument("-i", "--input_file", type=str, required=True, help="Path to the file to encode")
+    encode_parser.add_argument("-q", "--quality_factor", type=int, required=True, help="Quality factor for encoding")
+    encode_parser.add_argument("-o", "--output_file", type=str, default="jpeg_compression.pkl", help="Output file for encoded data")
 
-    # File name (string)
-    parser.add_argument(
-        "file_name",
-        type=str,
-        help="Path to the file to be encrypted or decrypted"
-    )
+    # Decode subparser
+    decode_parser = subparsers.add_parser("decode", help="Decode a file")
+    decode_parser.add_argument("-i", "--input_file", type=str, required=True, help="Path to the file to decode")
+    decode_parser.add_argument("-q", "--quality_factor", type=int, required=True, help="Quality factor for decoding")
+    decode_parser.add_argument("-o", "--output_file", type=str, default="compressed_img.png", help="Output file for decoded data")
+    decode_parser.add_argument("-s", "--show_file", action="store_true", help="Show the file of decoded data")
 
-    # Encryption flag
-    parser.add_argument(
-        "-e",
-        action="store_true",
-        help="Enable encryption"
-    )
+    # Encode and Decode subparser
+    encode_and_decode_parser = subparsers.add_parser("encodeanddecode", help="Encode and then decode a file")
+    encode_and_decode_parser.add_argument("-i", "--input_file", type=str, required=True, help="Path to the file to encode and decode")
+    encode_and_decode_parser.add_argument("-q", "--quality_factor", type=int, required=True, help="Quality factor for encoding")
+    encode_and_decode_parser.add_argument("-e", "--encoded_file", type=str, default="jpeg_compression.pkl", help="Temporary file for encoded data")
+    encode_and_decode_parser.add_argument("-o", "--output_file", type=str, default="compressed_img.png", help="Final output file after decoding")
+    encode_and_decode_parser.add_argument("-s", "--show_file", action="store_true", help="Show the file of decoded data")
 
-    # Decryption flag
-    parser.add_argument(
-        "-d",
-        action="store_true",
-        help="Enable decryption"
-    )
 
-    # Save result flag
-    parser.add_argument(
-        "-s",
-        action="store_true",
-        help="Show the result"
-    )
+    return parser.parse_args()
 
-    # Output file name
-    parser.add_argument(
-        "-o",
-        type=str,
-        metavar="File",
-        help="Output file name (used if -s is set)"
-    )
-
-    # Parse arguments
-    args = parser.parse_args()
-    return args
 
 # Main function
-def main(Q, fn, enc, dec, show, ofn):
-    # Quantization matrix
-    quant_matrix = np.array([
-        [16, 11, 10, 16, 24, 40, 51, 61],
-        [12, 12, 14, 19, 26, 58, 60, 55],
-        [14, 13, 16, 24, 40, 57, 69, 56],
-        [14, 17, 22, 29, 51, 87, 80, 62],
-        [18, 22, 37, 56, 68, 109, 103, 77],
-        [24, 35, 55, 64, 81, 104, 113, 92],
-        [49, 64, 78, 87, 103, 121, 120, 101],
-        [72, 92, 95, 98, 112, 100, 103, 99]
-    ])
-
-    quant_matrix = quant_matrix * (50/Q)
+def main(mode, Q, input, out, show, encoded_file):
     # If both encode and decode
-    if enc and dec:
-        # Load grayscale image
-        image = cv2.imread(fn, cv2.IMREAD_GRAYSCALE)
-        # Shifting image pixel intensities from 0:255 to -128:127
-        image = image - 128
-        h, w = image.shape
-        print(f"Original image shape: {h}x{w}")
-
-        # Compression
-        compressed_blocks = jpeg_compress(image, quant_matrix)
-        flat_data = compressed_blocks.flatten()
-
-        huffman_compress(flat_data, [h, w] , 'compressed_data.pkl')
-        # Decompression
-        decompressed_blocks, info, sz = huffman_decompress('compressed_data.pkl')
-        decompressed_blocks = np.array(decompressed_blocks)
-        height, width = info
-        decompressed_blocks = decompressed_blocks.reshape(-1, 64)
-        decompressed_image = jpeg_decompress(decompressed_blocks, quant_matrix, (height, width))
+    if mode == "encodeanddecode":
+        image, enc_file = encode(Q, input, encoded_file)
+        decompressed_image, info, sz = decode(Q, enc_file, out, show)
+        h, w = info
         # Compute RMSE
         rmse = calculate_rmse(image, decompressed_image)
         print(f"Root Mean Squared Error (RMSE): {rmse}")
         print("Size of Compressed image:", sz)
-        print("Bits Per Pixel (BPP):", (sz*8)/(height*width))
-        decompressed_image = decompressed_image + 128
-        image = image + 128
-        if show:
-            plt.imshow(image, cmap='gray')
-            plt.show()
-            plt.imshow(decompressed_image, cmap='gray')
-            plt.show()
-        
-        if ofn:
-            # Save the decompressed image
-            cv2.imwrite(f"{ofn}", decompressed_image)
+        print("Bits Per Pixel (BPP):", (sz*8)/(h*w))
     # if only encode
-    elif enc:
-        # Load grayscale image
-        image = cv2.imread(fn, cv2.IMREAD_GRAYSCALE)
-        # Shifting image pixel intensities from 0:255 to -128:127
-        image = image - 128
-        h, w = image.shape
-        print(f"Original image shape: {h}x{w}")
-
-        # Compression
-        compressed_blocks = jpeg_compress(image, quant_matrix)
-        flat_data = compressed_blocks.flatten()
-        fl = fn.split('.')
-
-        huffman_compress(flat_data, [h, w] , fl[0] + '_myjpeg.pkl')
+    elif mode == "encode":
+        image, enc_file = encode(Q, input, out)
     # If only decode 
-    elif dec:
-        decompressed_blocks, info, sz = huffman_decompress(fn)
-        decompressed_blocks = np.array(decompressed_blocks)
-        height, width = info
-        decompressed_blocks = decompressed_blocks.reshape(-1, 64)
-        decompressed_image = jpeg_decompress(decompressed_blocks, quant_matrix, (height, width))
+    elif mode == "decode":
+        decompressed_image, info, sz = decode(Q, input, out, show)
+        h, w = info
         print("Size of Compressed image:", sz)
-        print("Bits Per Pixel (BPP):", (sz*8)/(height*width))
-        decompressed_image = decompressed_image + 128
-        if show:
-            plt.imshow(decompressed_image, cmap='gray')
-            plt.show()
-        if ofn:
-            # Save the decompressed image
-            cv2.imwrite(f"{ofn}", decompressed_image)
+        print("Bits Per Pixel (BPP):", (sz*8)/(h*w))
 
 if __name__ == "__main__":
     args = parse_arguments()
-    main(args.quality_factor, args.file_name, args.e, args.d, args.s, args.o)
+    main(args.mode, args.quality_factor, args.input_file, args.output_file, args.show_file, args.encoded_file)
