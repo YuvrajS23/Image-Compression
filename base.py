@@ -1,19 +1,15 @@
-import cv2
 from decode import *
-from huffman import huffman_compress, huffman_decompress
 import argparse
 
-# TODO: Implement the subparser
-# Implement for colour images
-# Add Encode and Decode Functions
+# TODO: Implement for colour images
 # Write plotting code
 # Start the report
 
 # Parsing the args
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Encode, decode, or perform both operations on a file.")
+    parser = argparse.ArgumentParser(description="Image Compression")
     
-    # Subparsers for 'encode', 'decode', and 'encodeanddecode'
+    #Subparsers
     subparsers = parser.add_subparsers(dest="mode", required=True, help="Operation mode")
 
     # Encode subparser
@@ -46,23 +42,23 @@ def main(mode, Q, input, out, show, encoded_file):
     # If both encode and decode
     if mode == "encodeanddecode":
         image, enc_file = encode(Q, input, encoded_file)
-        decompressed_image, info, sz = decode(Q, enc_file, out, show)
-        h, w = info
+        decompressed_image, info, _ = decode(Q, enc_file, out, show)
         # Compute RMSE
         rmse = calculate_rmse(image, decompressed_image)
         print(f"Root Mean Squared Error (RMSE): {rmse}")
-        print("Size of Compressed image:", sz)
-        print("Bits Per Pixel (BPP):", (sz*8)/(h*w))
     # if only encode
     elif mode == "encode":
         image, enc_file = encode(Q, input, out)
     # If only decode 
     elif mode == "decode":
-        decompressed_image, info, sz = decode(Q, input, out, show)
-        h, w = info
-        print("Size of Compressed image:", sz)
-        print("Bits Per Pixel (BPP):", (sz*8)/(h*w))
+        decompressed_image, info, _ = decode(Q, input, out, show)
 
 if __name__ == "__main__":
     args = parse_arguments()
-    main(args.mode, args.quality_factor, args.input_file, args.output_file, args.show_file, args.encoded_file)
+    encoded_file = ""
+    show_file = True
+    if args.mode == "encodeanddecode":
+        encoded_file = args.encoded_file
+    if args.mode != "encode":
+        show_file = args.show_file
+    main(args.mode, args.quality_factor, args.input_file, args.output_file, show_file, encoded_file)

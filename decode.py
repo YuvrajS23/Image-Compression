@@ -24,6 +24,8 @@ def decode(Q, input, out, show):
     decompressed_image = jpeg_decompress(decompressed_blocks, qm, (height, width))
     decompressed_image = decompressed_image + 128
     cv2.imwrite(f"{out}", decompressed_image)
+    print("Size of Compressed image:", sz)
+    print("Bits Per Pixel (BPP):", (sz*8)/(height*width))
     if show:
         plt.imshow(decompressed_image, cmap='gray')
         plt.show()
