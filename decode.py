@@ -1,6 +1,5 @@
 from encode import *
 from huffman import huffman_decompress
-import matplotlib.pyplot as plt
 
 def decode(input, out, show):
     # Quantization matrix
@@ -18,15 +17,52 @@ def decode(input, out, show):
     # Decompression
     decompressed_blocks, info, sz = huffman_decompress(input)
     decompressed_blocks = np.array(decompressed_blocks)
-    Q, height, width = info
-    qm = quant_matrix * (50/Q)
-    decompressed_blocks = decompressed_blocks.reshape(-1, 64)
-    decompressed_image = jpeg_decompress(decompressed_blocks, qm, (height, width))
-    decompressed_image = decompressed_image + 128
-    cv2.imwrite(f"{out}", decompressed_image)
-    print("Size of Compressed image:", sz)
-    print("Bits Per Pixel (BPP):", (sz*8)/(height*width))
-    if show:
-        plt.imshow(decompressed_image, cmap='gray')
-        plt.show()
-    return decompressed_image
+    # print(decompressed_blocks[0:100])
+    Q, height, width, padded_shape, isColor = info
+    ph, pw = padded_shape
+    l = ph*pw
+    if isColor:
+        qmY = quant_matrix * (50/Q)
+        qmC = qmY * 2
+        # assert(len(decompressed_blocks) == 2*height*width)
+        y = decompressed_blocks[0: l]
+        color = decompressed_blocks[l :]
+        cb = color[:len(color)//2]
+        cr = color[len(color)//2:]
+        y = y.reshape(-1, 64)
+        cb = cb.reshape(-1, 64)
+        cr = cr.reshape(-1, 64)
+        decompressed_y = jpeg_decompress(y, qmY, (ph, pw))
+        # print(decompressed_y[0:100])
+        decompressed_cb = jpeg_decompress(cb, qmC, (ph // 2, pw // 2))
+        decompressed_cr = jpeg_decompress(cr, qmC, (ph // 2, pw // 2))
+        # Upsample Cb and Cr back to original size
+        decompressed_cb = upsampling_channel(decompressed_cb)
+        decompressed_cr = upsampling_channel(decompressed_cr)
+        # Merge channels and convert back to RGB
+        decompressed_y = decompressed_y + 128
+        decompressed_cr = decompressed_cr + 128
+        decompressed_cb = decompressed_cb + 128
+        ycbcr = np.concatenate((decompressed_y.reshape(ph, pw, 1), decompressed_cb.reshape(ph, pw, 1), decompressed_cr.reshape(ph, pw, 1)), axis=2).astype(np.uint8)
+        decompressed_image = cv2.cvtColor(ycbcr, cv2.COLOR_YCrCb2RGB)
+        cv2.imwrite(f"{out}", decompressed_image)
+        print("Size of Compressed image:", sz)
+        print("Bits Per Pixel (BPP):", (sz*8)/(height*width))
+        decompressed_image = remove_equal_padding(decompressed_image, (height, width))
+        if show:
+            plt.imshow(decompressed_image)
+            plt.show()
+        return decompressed_image
+
+    else:
+        qm = quant_matrix * (50/Q)
+        decompressed_blocks = decompressed_blocks.reshape(-1, 64)
+        decompressed_image = jpeg_decompress(decompressed_blocks, qm, (height, width))
+        decompressed_image = decompressed_image + 128
+        cv2.imwrite(f"{out}", decompressed_image)
+        print("Size of Compressed image:", sz)
+        print("Bits Per Pixel (BPP):", (sz*8)/(height*width))
+        if show:
+            plt.imshow(decompressed_image, cmap='gray')
+            plt.show()
+        return decompressed_image

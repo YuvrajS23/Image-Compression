@@ -1,5 +1,6 @@
 from scipy.fftpack import dct, idct
 import numpy as np
+import matplotlib.pyplot as plt
 import cv2
 
 # 2D DCT
@@ -51,3 +52,72 @@ def calculate_rmse(original, compressed):
         raise ValueError("Images must have the same dimensions for MSE calculation.")
     mse = np.mean((original.astype(np.float32) - compressed.astype(np.float32)) ** 2)
     return np.sqrt(mse)
+
+# Zero-pads an image equally on all sides to make its height and width multiples of 8
+def zero_pad(image):
+    height, width = image.shape[:2]
+    
+    # Calculate padding needed
+    pad_height = (8 - height % 8) % 8
+    pad_width = (8 - width % 8) % 8
+
+    # Split padding equally between start and end
+    pad_top = pad_height // 2
+    pad_bottom = pad_height - pad_top
+    pad_left = pad_width // 2
+    pad_right = pad_width - pad_left
+
+    # Apply padding
+    if image.ndim == 3:  # Color image
+        padded_image = np.pad(
+            image,
+            ((pad_top, pad_bottom), (pad_left, pad_right), (0, 0)),
+            mode='constant',
+            constant_values=0
+        )
+    else:  # Grayscale image
+        padded_image = np.pad(
+            image,
+            ((pad_top, pad_bottom), (pad_left, pad_right)),
+            mode='constant',
+            constant_values=0
+        )
+    
+    return padded_image, (height, width), padded_image.shape[:2]
+
+# Removes equal padding from an image to restore it to its original dimensions
+def remove_equal_padding(padded_image, original_shape):
+    padded_height, padded_width = padded_image.shape[:2]
+    original_height, original_width = original_shape
+
+    # Calculate padding values
+    pad_height = padded_height - original_height
+    pad_width = padded_width - original_width
+
+    pad_top = pad_height // 2
+    pad_left = pad_width // 2
+
+    # Remove the padding by slicing
+    unpadded_image = padded_image[
+        pad_top:pad_top + original_height,
+        pad_left:pad_left + original_width
+    ]
+    return unpadded_image
+
+def downsampling_channel(ch):
+    h, w = ch.shape
+    ch = ch.reshape(h//2, 2, w//2, 2)
+    ch = np.swapaxes(ch, 1, 2)
+    ch = ch.reshape(h//2, w//2, 4)
+    ch = ch.mean(axis=2)
+    ch = np.round(ch).astype(np.int32)
+    return ch
+
+def upsampling_channel(ch):
+    h,w = ch.shape
+    ch = ch.reshape(h, w, 1)
+    ch = ch.repeat(4, axis=2)
+    ch = ch.reshape(h, w, 2, 2)
+    ch = np.swapaxes(ch, 1, 2)
+    ch = ch.reshape(2*h, 2*w)
+    return ch
