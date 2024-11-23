@@ -3,6 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
+quant_matrix = np.array([
+    [16, 11, 10, 16, 24, 40, 51, 61],
+    [12, 12, 14, 19, 26, 58, 60, 55],
+    [14, 13, 16, 24, 40, 57, 69, 56],
+    [14, 17, 22, 29, 51, 87, 80, 62],
+    [18, 22, 37, 56, 68, 109, 103, 77],
+    [24, 35, 55, 64, 81, 104, 113, 92],
+    [49, 64, 78, 87, 103, 121, 120, 101],
+    [72, 92, 95, 98, 112, 100, 103, 99]
+])
+
+
 # 2D DCT
 def dct2(block):
     return dct(dct(block.T, norm='ortho').T, norm='ortho')
@@ -44,7 +56,8 @@ def jpeg_decompress(compressed_blocks, quant_matrix, shape):
             block = idct2(dequant_block)
             decompressed_image[i:i+8, j:j+8] = block
             idx += 1
-    return np.clip(decompressed_image, 0, 255).astype(np.uint8)
+
+    return decompressed_image
 
 # Calculate the Root Mean Squared Error between two images
 def calculate_rmse(original, compressed):
@@ -53,13 +66,13 @@ def calculate_rmse(original, compressed):
     mse = np.mean((original.astype(np.float32) - compressed.astype(np.float32)) ** 2)
     return np.sqrt(mse)
 
-# Zero-pads an image equally on all sides to make its height and width multiples of 8
+# Zero-pads an image equally on all sides to make its height and width multiples of 16 (to account for downsampling)
 def zero_pad(image):
     height, width = image.shape[:2]
-    
+
     # Calculate padding needed
-    pad_height = (8 - height % 8) % 8
-    pad_width = (8 - width % 8) % 8
+    pad_height = (16 - height % 16) % 16
+    pad_width = (16 - width % 16) % 16
 
     # Split padding equally between start and end
     pad_top = pad_height // 2
@@ -82,7 +95,7 @@ def zero_pad(image):
             mode='constant',
             constant_values=0
         )
-    
+
     return padded_image, (height, width), padded_image.shape[:2]
 
 # Removes equal padding from an image to restore it to its original dimensions
@@ -109,8 +122,7 @@ def downsampling_channel(ch):
     ch = ch.reshape(h//2, 2, w//2, 2)
     ch = np.swapaxes(ch, 1, 2)
     ch = ch.reshape(h//2, w//2, 4)
-    ch = ch.mean(axis=2)
-    ch = np.round(ch).astype(np.int32)
+    ch = ch.mean(axis=2,dtype=ch.dtype)
     return ch
 
 def upsampling_channel(ch):
