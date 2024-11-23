@@ -2,7 +2,7 @@ from encode import *
 from huffman import huffman_decompress
 import matplotlib.pyplot as plt
 
-def decode(Q, input, out, show):
+def decode(input, out, show):
     # Quantization matrix
     quant_matrix = np.array([
         [16, 11, 10, 16, 24, 40, 51, 61],
@@ -15,11 +15,11 @@ def decode(Q, input, out, show):
         [72, 92, 95, 98, 112, 100, 103, 99]
     ])
 
-    qm = quant_matrix * (50/Q)
     # Decompression
     decompressed_blocks, info, sz = huffman_decompress(input)
     decompressed_blocks = np.array(decompressed_blocks)
-    height, width = info
+    Q, height, width = info
+    qm = quant_matrix * (50/Q)
     decompressed_blocks = decompressed_blocks.reshape(-1, 64)
     decompressed_image = jpeg_decompress(decompressed_blocks, qm, (height, width))
     decompressed_image = decompressed_image + 128
@@ -29,4 +29,4 @@ def decode(Q, input, out, show):
     if show:
         plt.imshow(decompressed_image, cmap='gray')
         plt.show()
-    return decompressed_image, info, sz
+    return decompressed_image

@@ -21,7 +21,6 @@ def parse_arguments():
     # Decode subparser
     decode_parser = subparsers.add_parser("decode", help="Decode a file")
     decode_parser.add_argument("-i", "--input_file", type=str, required=True, help="Path to the file to decode")
-    decode_parser.add_argument("-q", "--quality_factor", type=int, required=True, help="Quality factor for decoding")
     decode_parser.add_argument("-o", "--output_file", type=str, default="compressed_img.png", help="Output file for decoded data")
     decode_parser.add_argument("-s", "--show_file", action="store_true", help="Show the file of decoded data")
 
@@ -42,7 +41,7 @@ def main(mode, Q, input, out, show, encoded_file):
     # If both encode and decode
     if mode == "encodeanddecode":
         image, enc_file = encode(Q, input, encoded_file)
-        decompressed_image, info, _ = decode(Q, enc_file, out, show)
+        decompressed_image = decode(enc_file, out, show)
         # Compute RMSE
         rmse = calculate_rmse(image, decompressed_image)
         print(f"Root Mean Squared Error (RMSE): {rmse}")
@@ -51,14 +50,17 @@ def main(mode, Q, input, out, show, encoded_file):
         image, enc_file = encode(Q, input, out)
     # If only decode 
     elif mode == "decode":
-        decompressed_image, info, _ = decode(Q, input, out, show)
+        decompressed_image = decode(input, out, show)
 
 if __name__ == "__main__":
     args = parse_arguments()
     encoded_file = ""
     show_file = True
+    quality_factor = 100
     if args.mode == "encodeanddecode":
         encoded_file = args.encoded_file
     if args.mode != "encode":
         show_file = args.show_file
-    main(args.mode, args.quality_factor, args.input_file, args.output_file, show_file, encoded_file)
+    if args.mode != "decode":
+        quality_factor = args.quality_factor
+    main(args.mode, quality_factor, args.input_file, args.output_file, show_file, encoded_file)

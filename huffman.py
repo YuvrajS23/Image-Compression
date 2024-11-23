@@ -2,6 +2,7 @@ import pickle
 import dahuffman
 import os
 
+# Huffman Encoding
 def huffman_compress(data, info, file_path):
     codec = dahuffman.HuffmanCodec.from_data(data)
     compressed_data = codec.encode(data)
@@ -10,6 +11,7 @@ def huffman_compress(data, info, file_path):
         pickle.dump(package, file)
     return file_path
     
+# Decoding
 def huffman_decompress(file_path):
     with open(file_path, "rb") as file:
         loaded_package = pickle.load(file)

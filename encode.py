@@ -1,3 +1,5 @@
+import cv2
+import numpy as np
 from utils import *
 from huffman import huffman_compress
 
@@ -24,5 +26,5 @@ def encode(Q, input, out):
     # Compression
     compressed_blocks = jpeg_compress(image, qm)
     flat_data = compressed_blocks.flatten()
-    return image + 128, huffman_compress(flat_data, [h, w] , out)
+    return image + 128, huffman_compress(flat_data, [Q, h, w] , out)
 
