@@ -5,7 +5,7 @@ from huffman import huffman_compress
 
 def encode(Q, input, out):
     # Load the image
-    image = cv.imread(input, cv.IMREAD_COLOR)
+    image = cv.imread(input)
 
     if len(image.shape) == 3 and image.shape[2] == 3:
         qmY = quant_matrix * (50/Q)

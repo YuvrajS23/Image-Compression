@@ -1,6 +1,7 @@
 from scipy.fftpack import dct, idct
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 import cv2
 
 quant_matrix = np.array([
@@ -58,6 +59,11 @@ def jpeg_decompress(compressed_blocks, quant_matrix, shape):
             idx += 1
 
     return decompressed_image
+
+# Calculate bits per pixel (BPP)
+def calculate_bpp(encoded_size, image_shape):
+    total_pixels = image_shape[0] * image_shape[1]
+    return (encoded_size * 8) / total_pixels
 
 # Calculate the Root Mean Squared Error between two images
 def calculate_rmse(original, compressed):

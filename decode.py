@@ -43,12 +43,12 @@ def decode(input, out):
         ycrcb = np.concatenate((y.reshape(ph, pw, 1), cr.reshape(ph, pw, 1), cb.reshape(ph, pw, 1)), axis=2).astype(np.uint8)
         decompressed_image = cv.cvtColor(ycrcb, cv.COLOR_YCrCb2BGR)
         decompressed_image = remove_equal_padding(decompressed_image, (height, width))
-
         cv.imwrite(f"{out}", decompressed_image)
+        bpp = calculate_bpp(sz, (height, width))
         print("Size of Compressed image:", sz)
-        print("Bits Per Pixel (BPP):", (sz*8)/(height*width))
+        print("Bits Per Pixel (BPP):", bpp)
 
-        return decompressed_image
+        return decompressed_image, bpp
 
     else:
         qm = quant_matrix * (50/Q)
@@ -56,6 +56,7 @@ def decode(input, out):
         decompressed_image = jpeg_decompress(decompressed_blocks, qm, (height, width))
         decompressed_image = decompressed_image + 128
         cv.imwrite(f"{out}", decompressed_image)
+        bpp = calculate_bpp(sz, (height, width))
         print("Size of Compressed image:", sz)
-        print("Bits Per Pixel (BPP):", (sz*8)/(height*width))
-        return decompressed_image
+        print("Bits Per Pixel (BPP):", bpp)
+        return decompressed_image, bpp

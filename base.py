@@ -38,11 +38,11 @@ if __name__ == "__main__":
 
     if args.mode == "encodeanddecode":
         image, enc_file = encode(args.quality_factor, args.input_file, args.encoded_file)
-        decompressed_image = decode(enc_file, args.output_file)
+        decompressed_image, bpp = decode(enc_file, args.output_file)
         # Compute RMSE
         rmse = calculate_rmse(image, decompressed_image)
         print(f"Root Mean Squared Error (RMSE): {rmse}")
     elif args.mode == "encode":
         image, enc_file = encode(args.quality_factor, args.input_file, args.output_file)
     elif args.mode == "decode":
-        decompressed_image = decode(args.input_file, args.output_file)
+        decompressed_image, bpp = decode(args.input_file, args.output_file)
