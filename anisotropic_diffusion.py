@@ -4,12 +4,12 @@ import cv2 as cv
 
 # (x,y) -> (x,y)
 def grad_x(I):
-    return cv.filter2D(I, cv.CV_64F, np.array([[1,0,-1]]))
+    return cv.filter2D(I, cv.CV_64F, np.array([[1,-1]]))
 
 
 # (x,y) -> (x,y)
 def grad_y(I):
-    return cv.filter2D(I, cv.CV_64F, np.array([[1],[0],[-1]]))
+    return cv.filter2D(I, cv.CV_64F, np.array([[1],[-1]]))
 
 
 # (x,y) -> (x,y,2)
@@ -62,14 +62,12 @@ def perform_diffusion(values, shape, sigma, lamb, diffusion_cutoff, step):
         mask[pos[0],pos[1]] = 0.0
         I[pos[0],pos[1]] = val
 
-    while True:
+    for _ in range(50):
         e = step * eed(I, sigma, lamb)
-        ne = rmse(e)
-        print(ne)
+        ne = rmse(e) / rmse(I)
         if ne < diffusion_cutoff:
             break
         I = I + e
-
     plt.imshow(np.floor(I * 256), cmap='gray')
     plt.show()
 
@@ -118,7 +116,7 @@ def perform_splits(I, split_cutoff, sigma, lamb, diffusion_cutoff, step):
         img1, img2, a = split(I)
         return (perform_splits(img1, split_cutoff, sigma, lamb, diffusion_cutoff, step), perform_splits(img2, split_cutoff, sigma, lamb, diffusion_cutoff, step), a)
     else:
-        n = n + 8
+        n = n + s.size()
         # print(values, I.shape)
         return (values, I.shape)
 
@@ -144,9 +142,9 @@ if __name__ == "__main__":
     split_cutoff = 2
 
     sigma = 1.0
-    lamb = 1.38
-    diffusion_cutoff = 0.0000001
-    step = 0.01
+    lamb = 0.0018
+    diffusion_cutoff = 0.0001
+    step = 0.1
 
     res = perform_splits(I, split_cutoff, sigma, lamb, diffusion_cutoff, step)
 
