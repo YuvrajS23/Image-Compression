@@ -1,11 +1,11 @@
 import cv2 as cv
 from encode import *
-from huffman import huffman_decompress
+from compress import data_decompress
 from utils import quant_matrix
 
 def decode(input, out):
     # Decompression
-    decompressed_blocks, info, sz = huffman_decompress(input)
+    decompressed_blocks, info, sz = data_decompress(input)
     decompressed_blocks = np.array(decompressed_blocks).astype(np.float32)
 
     Q, height, width, padded_shape, isColor = info

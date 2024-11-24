@@ -20,7 +20,7 @@ def process_images(folder_path, quality_list):
             if original_image is None:
                 print(f"Skipping {file_name}: Could not read image.")
                 continue
-            
+
             image_rmse = []
             image_bpp = []
             jpeg_rmse = []
@@ -36,28 +36,26 @@ def process_images(folder_path, quality_list):
                 image_bpp.append(bpp)
                 jpeg_rmse.append(rmse_jpeg)
                 jpeg_bpp.append(bpp_jpeg)
-            
+
             # Plot RMSE vs BPP
             plot_rmse_vs_bpp(file_name, quality_list, [image_rmse, jpeg_rmse], [image_bpp, jpeg_bpp])
-    
+
 
 # Plot RMSE vs BPP for each image
 def plot_rmse_vs_bpp(image_name, quality_list, rmse_values, bpp_values):
     plt.figure(figsize=(8, 5))
+    fig, ax = plt.subplots()
     for i in [0, 1]:
-        plt.plot(bpp_values[i], rmse_values[i], marker='o', linestyle='-', label="RMSE vs BPP")
+        ax.plot(bpp_values[i], rmse_values[i], marker='o', linestyle='-', label=("My JPEG" if i == 0 else "Existing JPEG"))
         for i, (bpp, rmse) in enumerate(zip(bpp_values[i], rmse_values[i])):
-            plt.text(bpp, rmse, f" Q={quality_list[i]}", fontsize=12)
-        
-        plt.xlabel("Bits Per Pixel (BPP)")
-        plt.ylabel("Root Mean Squared Error (RMSE)")
-        plt.title(f"RMSE vs BPP for {image_name}")
-        plt.grid(True)
-        if i == 0:
-            plt.legend("My-JPEG")
-        else:
-            plt.legend("Existing-JPEG")
-    plt.show()
+            ax.text(bpp, rmse, f" Q={quality_list[i]}", fontsize=12)
+
+        ax.set_xlabel("Bits Per Pixel (BPP)")
+        ax.set_ylabel("Root Mean Squared Error (RMSE)")
+        ax.set_title(f"RMSE vs BPP for {image_name}")
+        ax.grid(True)
+        ax.legend(loc="upper right")
+    fig.savefig(f"plot_rmse_vs_bpp_'{image_name}'.png")
 
 # Input parameters
 folder_path = "./images"

@@ -1,12 +1,12 @@
 import cv2 as cv
 import numpy as np
 from utils import *
-from huffman import huffman_compress
+from compress import data_compress
 
 def encode(Q, input, out):
-    # Load the image
-    image = cv.imread(input)
+    image = image = cv.imread(input)
 
+    # Load the image
     if len(image.shape) == 3 and image.shape[2] == 3:
         qmY = quant_matrix * (50/Q)
         qmC = qmY * 2
@@ -36,12 +36,11 @@ def encode(Q, input, out):
 
         flat_data = list(y) + list(cr) + list(cb)
         image = remove_equal_padding(image, (h, w))
-        return image, huffman_compress(flat_data, [Q, h, w, ps, True] , out)
+        return image, data_compress(flat_data, [Q, h, w, ps, True] , out)
 
     elif len(image.shape) == 2:
         qm = quant_matrix * (50/Q)
         # Load grayscale image
-        image = cv.imread(input, cv.IMREAD_GRAYSCALE)
         image, (h, w), ps = zero_pad(image)
         # Shifting image pixel intensities from 0:255 to -128:127
         image = image - 128
@@ -50,7 +49,7 @@ def encode(Q, input, out):
         compressed_blocks = jpeg_compress(image, qm)
         flat_data = compressed_blocks.flatten()
         image = remove_equal_padding(image, (h, w))
-        return image + 128, huffman_compress(flat_data, [Q, h, w, ps, False] , out)
+        return image + 128, data_compress(flat_data, [Q, h, w, ps, False] , out)
     else:
         print("The image format is unknown.")
 
