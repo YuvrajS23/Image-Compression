@@ -3,7 +3,7 @@ from decode import *
 #JPEG Compression
 def jpeg_comp(file_path, quality):
     image = cv.imread(file_path)
-    cv2.imwrite('jpeg_comp.jpg', image, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
+    cv.imwrite('jpeg_comp.jpg', image, [int(cv.IMWRITE_JPEG_QUALITY), quality])
     comp = cv.imread('jpeg_comp.jpg')
     sz = os.path.getsize('jpeg_comp.jpg')
     rmse = calculate_rmse(image, comp)
@@ -82,11 +82,11 @@ def plot_mcr_vs_quality(folder_path, quality_list):
     plt.savefig("plot_mcr_vs_q_NET.png")
 
 # Input parameters
-folder_path = "./images/NET"
+folder_path = "./images/combined"
 quality_list = [1, 5, 10, 25, 50, 100]
 
 # Process images and compute metrics
-# process_images(folder_path, quality_list)
-plot_mcr_vs_quality(folder_path, quality_list)
+process_images(folder_path, quality_list)
+# plot_mcr_vs_quality(folder_path, quality_list)
 
 
