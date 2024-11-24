@@ -15,12 +15,6 @@ def process_images(folder_path, quality_list):
     for file_name in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file_name)
         if os.path.isfile(file_path):
-            # Read image
-            original_image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
-            if original_image is None:
-                print(f"Skipping {file_name}: Could not read image.")
-                continue
-
             image_rmse = []
             image_bpp = []
             jpeg_rmse = []
@@ -28,9 +22,11 @@ def process_images(folder_path, quality_list):
 
             for quality in quality_list:
                 image, enc_file = encode(quality, file_path, "jpeg_compression.pkl")
-                decompressed_image, bpp = decode(enc_file, "compressed_img.png")
+                decompressed_image, sz = decode(enc_file, "compressed_img.png")
                 # Compute RMSE
                 rmse = calculate_rmse(image, decompressed_image)
+                # Compute BPP
+                bpp = calculate_bpp(sz, image.shape)
                 rmse_jpeg, bpp_jpeg = jpeg_comp(file_path, quality)
                 image_rmse.append(rmse)
                 image_bpp.append(bpp)
@@ -57,11 +53,40 @@ def plot_rmse_vs_bpp(image_name, quality_list, rmse_values, bpp_values):
         ax.legend(loc="upper right")
     fig.savefig(f"plot_rmse_vs_bpp_'{image_name}'.png")
 
+# Mean Compression ratio for a given quality factor
+def mean_compression_ratio(folder_path, quality):
+    sum_original = 0
+    sum_compressed = 0
+    for file_name in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, file_name)
+        if os.path.isfile(file_path):
+            original_size = os.path.getsize(file_path)
+            image, enc_file = encode(quality, file_path, "jpeg_compression.pkl")
+            decompressed_image, sz = decode(enc_file, "compressed_img.png")
+            sum_original += original_size
+            sum_compressed += sz
+    return sum_original / sum_compressed
+
+
+# Plot MCR vs Quality Factor
+def plot_mcr_vs_quality(folder_path, quality_list):
+    mcrs = []
+    for q in quality_list:
+        mcr = mean_compression_ratio(folder_path, q)
+        mcrs.append(mcr)
+    plt.figure(figsize=(8, 5))
+    plt.plot(quality_list, mcrs, marker='o', linestyle='-', label="MCR v Q")
+    plt.xlabel("Quality Factor")
+    plt.ylabel("Mean Compression Ratio")
+    plt.title("Mean Compression Ratio vs Quality Factor")
+    plt.savefig("plot_mcr_vs_q_NET.png")
+
 # Input parameters
-folder_path = "./images"
+folder_path = "./images/NET"
 quality_list = [1, 5, 10, 25, 50, 100]
 
 # Process images and compute metrics
-process_images(folder_path, quality_list)
+# process_images(folder_path, quality_list)
+plot_mcr_vs_quality(folder_path, quality_list)
 
 

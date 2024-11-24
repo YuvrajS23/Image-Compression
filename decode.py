@@ -53,7 +53,7 @@ def decode(input, out):
         print("Size of Compressed image:", compressed_file_size)
         print("Bits Per Pixel (BPP):", bpp)
 
-        return decompressed_image, bpp
+        return decompressed_image, sz
 
     else:
         qm = quant_matrix * (50/Q)
@@ -64,4 +64,4 @@ def decode(input, out):
         bpp = calculate_bpp(compressed_file_size, (height, width))
         print("Size of Compressed image:", compressed_file_size)
         print("Bits Per Pixel (BPP):", bpp)
-        return decompressed_image, bpp
+        return decompressed_image, sz
