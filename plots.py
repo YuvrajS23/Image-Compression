@@ -86,11 +86,11 @@ def plot_mcr_vs_quality(folder_path, quality_list):
     plt.plot(quality_list, mcrs, marker='o', linestyle='-', label="MCR v Q")
     plt.xlabel("Quality Factor")
     plt.ylabel("Mean Compression Ratio")
-    plt.title("Mean Compression Ratio vs Quality Factor")
-    plt.savefig(f"plot_mcr_vs_q_flamingo.png")
+    plt.title("Mean Compression Ratio vs Quality Factor for Airplane")
+    plt.savefig(f"plot_mcr_vs_q_airplane.png")
 
 # Input parameters
-folder_path = "./images/flamingo"
+folder_path = "./images/airplane"
 quality_list = [1, 5, 10, 25, 50, 100]
 
 # Process images and compute metrics
