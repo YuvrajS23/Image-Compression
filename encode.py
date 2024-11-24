@@ -4,13 +4,12 @@ from utils import *
 from compress import data_compress
 
 def encode(Q, input, out):
-    image = image = cv.imread(input)
+    image = image = cv.imread(input, cv.IMREAD_UNCHANGED).astype(np.float32)
 
     # Load the image
     if len(image.shape) == 3 and image.shape[2] == 3:
-        qmY = quant_matrix * (50/Q)
+        qmY = (quant_matrix * 50) / Q
         qmC = qmY * 2
-        image = image.astype(np.float32)
         image, (h, w), ps = zero_pad(image)
 
         # Convert from BGR to YCbCr
@@ -20,7 +19,7 @@ def encode(Q, input, out):
         cb =    128 - 37.79 * r     - 74.203 * g    + 112 * b
         cr =    128 + 112 * r       - 93.786 * g    - 18.214 * b
 
-        # Downsample Cb and Cr
+        # Downsample Cr and Cb
         cr = downsampling_channel(cr)
         cb = downsampling_channel(cb)
 
@@ -40,13 +39,14 @@ def encode(Q, input, out):
 
     elif len(image.shape) == 2:
         qm = quant_matrix * (50/Q)
-        # Load grayscale image
         image, (h, w), ps = zero_pad(image)
+
         # Shifting image pixel intensities from 0:255 to -128:127
         image = image - 128
-        print(f"Original image shape: {h}x{w}")
+
         # Compression
         compressed_blocks = jpeg_compress(image, qm)
+
         flat_data = compressed_blocks.flatten()
         image = remove_equal_padding(image, (h, w))
         return image + 128, data_compress(flat_data, [Q, h, w, ps, False] , out)

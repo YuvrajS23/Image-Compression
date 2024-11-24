@@ -1,8 +1,7 @@
-from scipy.fftpack import dct, idct
+from scipy.fftpack import dctn, idctn
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import cv2
 
 quant_matrix = np.array([
     [16, 11, 10, 16, 24, 40, 51, 61],
@@ -16,17 +15,9 @@ quant_matrix = np.array([
 ])
 
 
-# 2D DCT
-def dct2(block):
-    return dct(dct(block.T, norm='ortho').T, norm='ortho')
-
-# 2D IDCT
-def idct2(block):
-    return idct(idct(block.T, norm='ortho').T, norm='ortho')
-
 # Quantization
 def quantize(block, quant_matrix):
-    return np.int32(np.round(block / quant_matrix))
+    return (np.round(block / quant_matrix)).astype(np.int32)
 
 # Dequantization
 def dequantize(block, quant_matrix):
@@ -40,7 +31,7 @@ def jpeg_compress(image, quant_matrix):
     for i in range(0, h, 8):
         for j in range(0, w, 8):
             block = image[i:i+8, j:j+8]
-            dct_block = dct2(block)
+            dct_block = dctn(block, norm='ortho')
             quant_block = quantize(dct_block, quant_matrix)
             compressed_blocks.append(quant_block.flatten())
     return np.array(compressed_blocks)
@@ -54,7 +45,7 @@ def jpeg_decompress(compressed_blocks, quant_matrix, shape):
         for j in range(0, w, 8):
             quant_block = compressed_blocks[idx].reshape(8, 8)
             dequant_block = dequantize(quant_block, quant_matrix)
-            block = idct2(dequant_block)
+            block = idctn(dequant_block, norm='ortho')
             decompressed_image[i:i+8, j:j+8] = block
             idx += 1
 

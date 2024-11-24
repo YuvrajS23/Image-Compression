@@ -36,16 +36,10 @@ def rl_decode(o):
 # Huffman Encoding
 def data_compress(data, info, file_path):
     data = rl_encode(data)
-
     codec = dahuffman.HuffmanCodec.from_data(data)
     compressed_data = codec.encode(data)
+
     package = [codec, compressed_data, info]
-
-    # codec.print_code_table()
-    # print(data)
-    # print(sys.getsizeof(compressed_data))
-    # print(compressed_data)
-
     with open(file_path, "wb") as file:
         pickle.dump(package, file)
     return file_path
@@ -53,12 +47,10 @@ def data_compress(data, info, file_path):
 # Decoding
 def data_decompress(file_path):
     with open(file_path, "rb") as file:
-        loaded_package = pickle.load(file)
-    loaded_codec = loaded_package[0]
-    loaded_compressed_data = loaded_package[1]
-    info = loaded_package[2]
-    decompressed_data = loaded_codec.decode(loaded_compressed_data)
+        package = pickle.load(file)
+    codec, compressed_data, info = package[0], package[1], package[2]
 
+    decompressed_data = codec.decode(compressed_data)
     decompressed_data = rl_decode(decompressed_data)
 
     return decompressed_data, info, os.path.getsize(file_path)
