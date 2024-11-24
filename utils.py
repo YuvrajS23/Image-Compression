@@ -23,11 +23,11 @@ qm2 = np.array([
     [99, 99, 99, 99, 99, 99, 99, 99],
     [99, 99, 99, 99, 99, 99, 99, 99],
     [99, 99, 99, 99, 99, 99, 99, 99],
-    [99, 99, 99, 99, 99, 99, 99, 99],
 ])
 
 quant_matrix = qm1
-
+quant_matrix_luminance = qm1
+quant_matrix_chrominance = qm2
 
 # Quantization
 def quantize(block, quant_matrix):

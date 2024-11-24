@@ -8,8 +8,9 @@ def encode(Q, input, out):
 
     # Load the image
     if len(image.shape) == 3 and image.shape[2] == 3:
-        qmY = (quant_matrix * 50) / Q
-        qmC = qmY * 2
+        qmY = (quant_matrix_luminance * 50) / Q
+        qmC = (quant_matrix_chrominance * 50) / Q
+
         image, (h, w), ps = zero_pad(image)
 
         # Convert from BGR to YCbCr

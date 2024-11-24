@@ -12,8 +12,8 @@ def decode(input, out):
     ph, pw = padded_shape
 
     if isColor:
-        qmY = (quant_matrix * 50) / Q
-        qmC = qmY * 2
+        qmY = (quant_matrix_luminance * 50) / Q
+        qmC = (quant_matrix_chrominance * 50) / Q
 
         dy = (ph, pw)
         dcr = (ph//2, pw//2)
