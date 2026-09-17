@@ -15,3 +15,5 @@ To test encode and decode,
 ```
 python base.py encodeanddecode -i <INPUT_FILE> -q <QUALITY_FACTOR> -e <ENCODED_FILE(.pkl)> -o <OUTPUT_FILE>
 ```
+
+Please find the detailed report: [Report](JPEG_Like_Image_Compression.pdf)
